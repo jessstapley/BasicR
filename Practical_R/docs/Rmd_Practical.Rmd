@@ -1,0 +1,45 @@
+---
+title: "Practical01"
+author: "Jessica Stapley"
+date: "18/11/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown Practical
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com> or <https://www.statsandr.com/blog/getting-started-in-r-markdown/>
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Practical: Using markdown
+When using a markdown file R behaves a little differently when running and outputting the code. You can type code directly into the console, e.g. Type 2+2 in the console.
+Or it can be part of the code chunks (code between these " ``` " indicated on screen in the gray shaded area. To run this chunk of code press the green arrow (left). Where is the output being displayed?
+
+```{r calculator}
+2+2
+```
+
+## Including Plots
+
+The nice thing about R markdown is the way that code and graphs can be easily displayed in the final document. To include the code in the final document use the 'echo=TRUE/FALSE'. E.g. the code below will not appear in the final document. To include plots just simply plot the data.
+
+Lets make some data again. We will put these two vectors (xn, lx) into a data frame so you can see how we can plot data in a typical table format. We create the data frame using 'data.frame', we can see the structure using 'str'. We can change the column header using 'names'. NB. When we give R a list (number, vectors, names etc) we have to list of elements in parenthesis and separated by commas and put 'c' in front, i.e. 'c(1,2,3)'. Quotation marks ("") are used to specify words made of characters. These are also used to specify factors (e.g. sex: "M", "F"). We use the basic plot function. You can specify the x and y variables in a formula (e.g y~x) and you must also tell R the name of the data frame (data=nx.lx).
+
+```{r read data, echo=FALSE}
+xn <- rnorm(400, mean=50, sd=10)
+lx <- log(xn)
+
+nx.lx <-  data.frame(cbind(xn,lx))
+str(nx.lx)
+names(nx.lx) <- c("xn", "log.xn")
+plot(xn~lx, data =nx.lx)
+```
+## Generate a html file 
+Press Knit.
+

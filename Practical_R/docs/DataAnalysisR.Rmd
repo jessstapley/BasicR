@@ -1,0 +1,165 @@
+---
+title: "DataAnalysis"
+author: "Jessica Stapley"
+date: "18/11/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+### Basic Statistics in R
+The goal of this practical is to give you a basic background so that you can do some simple data analysis. A great feature of R is that many people are using it now and there are many excellent tutorials online.
+
+>“This is R. There is no if. Only how.”
+>-- Simon `Yoda' Blomberg, R-help (April 2005)
+
+
+
+## Plot a frequency histogram - look at the distrubution
+First we load some data. R comes with some data sets that we can use in this practical. To see all the data avaiable type 'data()'. For this we will load the 'airquality' dataset. We use the function 'str' to look at the structure of the data.
+
+```{r load data,, echo=FALSE}
+data(airquality)
+str(airquality)
+head(airquality)
+```
+
+How many numerical columns are there?
+Are there any factors? 
+
+## Check and Plot the data
+The first thing to do with your data is to check for errors and to do some exploratory plots. Look at summaries of the data to see if there is any missing data or if values seem to be out of range. Missing data (NA) will create some problems and you need to know how to deal with this. Look at help files for 'range' and see if you can figure out how to deal with NAs
+
+```{r check data, echo=FALSE}
+summary(airquality)
+range(airquality$Solar.R)
+
+```
+
+Now plot the data to look at the distribution and to look for possible outliers or errors.
+
+```{r frequncy distribution of numerical variables, echo=TRUE}
+par(mfrow=c(2,2)) # creates a panel of four plots (2 rows, 2 cols)
+hist(airquality$Solar.R)
+hist(airquality$Ozone)
+hist(airquality$Wind)
+hist(airquality$Temp)
+```
+Do all the numerical variable look normally distributed?
+
+Lets consider how Temperature is related to Solar.R
+```{r Plot Temp and Solar.R, echo=TRUE}
+plot(Temp ~ Solar.R, airquality, main="Plot of Temperature against Solar Radiation from New York", xlab="Solar Radiation", ylab="Temperature (F)", bty="l", pch=19)
+```
+
+## Correlation between Temp and Solar Radiation
+We can test if there is a significant correlation beetweeen two variables using the function (cor.test). Look at the help files to understand what this does (?cor.test).
+
+```{r correlation, echo=TRUE}
+cor.test(airquality$Temp, airquality$Solar.R)
+```
+
+## Linear Regression between Temp and Solar Radiation
+Next we will perform a linear model to investigate if Solar Radiation explains variation in Temperature. Here I make the response variable (dependent variable) Temperature and Solar Radiation is the explanatory variable. We use the 'summary' and 'anova' function to get summary information from this test.
+  
+```{r Linear model, echo=TRUE}
+m1 <- lm(Temp~Solar.R, data=airquality) 
+summary(m1)
+anova(m1)
+```
+For a good description of what this output means refer to Section 11.4 at  https://rc2e.com/linearregressionandanova
+
+We can check the fit of the model by using the 'plot' function to check if the model is appropriate. Here we see four plots and we are looking for any evidence that the data do not conform to the assumptions for a linear model. 
+
+```{r Model checking, echo=TRUE}
+plot(m1)
+```
+
+Residuals vs Fitted. Used to check the linear relationship assumptions. A horizontal line, without strong positive or negative trend is an indication of a linear model between the two variables
+
+Normal Q-Q. Used to examine whether the residuals are normally distributed. It’s good if residual points follow the straight dashed line.
+
+Scale-Location (or Spread-Location). Used to check the homogeneity of variance of the residuals (homoscedasticity). Horizontal line with equally spread points is a good indication of homoscedasticity. 
+
+Residuals vs Leverage. Used to identify influential cases, that is extreme values that might influence the regression results when included or excluded from the analysis. 
+
+For more discussion see:
+http://www.sthda.com/english/articles/39-regression-model-diagnostics/161-linear-regression-assumptions-and-diagnostics-in-r-essentials/
+
+## How does temperature vary with month
+```{r Temperature and Month, echo=TRUE}
+plot(Temp~Month, airquality)
+boxplot(Temp~Month, airquality)
+```
+
+What is the difference between these two plots. Do you know why R plots these like this? 
+
+## Is there a difference in Temperature between the month of May (5) and July (7)?
+First we subset the data to include only these two months and then test if the mean Temperature differs between May and July using a t-test. The '|' means 'or'. 
+
+```{r Compare Temperature in May and July, echo=TRUE}
+mj <- subset(airquality, airquality$Month==5 | airquality$Month==7)
+levels(as.factor(mj$Month))
+boxplot(Temp~Month, mj)
+t.test(mj$Temp, mj$Month)
+```
+
+Does mean temperature differ between July and May?
+
+## Survival analysis
+Some data is not normally distributed and you need to use other methods. Here I give an example of survival analysis. I do not do survival analysis very often, so I have relied heavily on this tutorial
+<http://www.sthda.com/english/wiki/survival-analysis-basics>
+
+```{r load Survival packaeges, echo=TRUE}
+library(survival)
+library(survminer)
+data(lung)
+str(lung)
+```
+
+The function survfit() can be used to compute kaplan-Meier survival estimate. The main arguments for the function are a survival object created using the function Surv() and the data set containing the variables.
+First fit the model using survfit
+
+```{r survival analysis, echo=TRUE}
+fit <- survfit(Surv(time, status) ~ sex, data = lung)
+print(fit)
+summary(fit)$table
+```
+
+The function survfit() returns a list of variables, including the following components:
+    n: total number of subjects in each curve.
+    time: the time points on the curve.
+    n.risk: the number of subjects at risk at time t
+    n.event: the number of events that occurred at time t.
+    n.censor: the number of censored subjects, who exit the risk set, without an event, at time t.
+    lower,upper: lower and upper confidence limits for the curve, respectively.
+    strata: indicates stratification of curve estimation. If strata is not NULL, there are multiple curves in the result. The levels of strata (a factor) are the labels for the curves.
+
+We can make this into a data.frame 
+```{r survival analysis data table, echo=TRUE}
+d <- data.frame(time = fit$time,
+                  n.risk = fit$n.risk,
+                  n.event = fit$n.event,
+                  n.censor = fit$n.censor,
+                  surv = fit$surv,
+                  upper = fit$upper,
+                  lower = fit$lower)
+head(d)
+```
+
+Not plot the results with ggplot
+```{r plot survival curves, echo=TRUE}
+ggsurvplot(fit,
+          pval = TRUE, conf.int = TRUE,
+          risk.table = TRUE, # Add risk table
+          risk.table.col = "strata", # Change risk table color by groups
+          linetype = "strata", # Change line type by groups
+          surv.median.line = "hv", # Specify median survival
+          ggtheme = theme_bw(), # Change ggplot2 theme
+          palette = c("#E7B800", "#2E9FDF"))
+```

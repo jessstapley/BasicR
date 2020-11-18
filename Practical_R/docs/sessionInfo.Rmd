@@ -1,0 +1,11 @@
+---
+title: "sessionInfo"
+author: "Jessica Stapley"
+date: "18/11/2020"
+output: html_document
+---
+
+```{r setup, include=TRUE}
+sessionInfo()
+```
+
